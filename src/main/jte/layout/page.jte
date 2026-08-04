@@ -1,14 +1,23 @@
 @import gg.jte.Content
 
 @param Content content
-
+@param Content title = null
+@param Content footer = null
 
 <!doctype html>
 <html>
     <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Layout Test</title>
+
+        <title>
+        @if (title == null)
+            Layout Test
+        @else
+            ${title}
+        @endif
+        </title>
+
     </head>
     <body>
         <header>
@@ -27,11 +36,14 @@
         ${content}
 
         <footer>
-            <ul>
-                <li>
-                    <a href="https://github.com/User57134">Профиль</a>
-                </li>
-            </ul>
+            @if (footer != null)
+               ${footer}
+            @endif
         </footer>
     </body>
 </html>
+
+
+
+
+

@@ -3,6 +3,7 @@
 
 @template.layout.page(
 content = @`
+<%-- Содержимое страницы --%>
     <h2>Курс</h2>
 
     <main>
@@ -11,5 +12,15 @@ content = @`
             <p>${page.getCourse().getDescription()}</p>
         </section>
     </main>
+`
+,
+footer = @`
+<%-- Содержимое нижнего колонтитула --%>
+    <span>Все права защищены. ©</span>
+`
+,
+title = @`
+<%-- Содержимое заголовка страницы --%>
+    Курс
 `
 )
