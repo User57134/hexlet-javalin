@@ -82,10 +82,6 @@ public class HelloWorld {
             courses.add(phpCourse);
             courses.add(pythonCourse);
 
-            System.out.println("Courses IDS:");
-            for (var c : courses)
-               System.out.println(c.getId());
-
             var page = new CoursesPage(courses, "Доступные курсы");
             ctx.render("courses/index.jte", model("page", page));
         });
