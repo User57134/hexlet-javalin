@@ -19,6 +19,12 @@ repositories {
 }
 
 dependencies {
+    // Подключение библиотеки для проверки на безопасность html
+    implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
+
+    // Подключение еще одной библиотеки для проверки на безопасность html
+    implementation("org.apache.commons:commons-text:1.15.0")
+
     // Подключаем Javalin
     implementation("io.javalin:javalin:6.1.3")
 
