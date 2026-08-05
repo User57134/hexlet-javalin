@@ -8,18 +8,25 @@ content = @`
     <h1>${page.getHeader()}</h1>
 
     <main>
-        @if (page.getCourses().isEmpty())
-            <p>Пока не добавлено ни одного курса</p>
-        @else
-            @for(var course : page.getCourses())
-                <section>
-                    <h2>
-                        <a href="/courses/${course.getId()}">${course.getName()}</a>
-                    </h2>
-                    <p>${course.getDescription()}</p>
-                </section>
-            @endfor
-        @endif
+        <form action="/courses" method="get">
+            <input type="search" name="term" value="${page.getTerm()}" />
+            <input type="submit" value="Search" />
+        </form>
+
+        <section>
+            @if (page.getCourses().isEmpty())
+                <p>Пока не добавлено ни одного курса</p>
+            @else
+                @for(var course : page.getCourses())
+                    <section>
+                        <h2>
+                            <a href="/courses/${course.getId()}">${course.getName()}</a>
+                        </h2>
+                        <p>${course.getDescription()}</p>
+                    </section>
+                @endfor
+            @endif
+        </section>
     </main>
 `
 ,

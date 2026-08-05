@@ -14,8 +14,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
+import static java.util.stream.Collectors.toList;
 
 public class HelloWorld {
+    static List<Course> courses = getCourses();
+
+    public static List<Course> getCourses() {
+        if (courses == null) {
+            courses = new ArrayList<>();
+
+            var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
+            javaCourse.setId(1L);
+
+            var pythonCourse = new Course("Python", "Этот курс научит вас программировать на Python");
+            pythonCourse.setId(2L);
+
+            var phpCourse = new Course("PHP", "Этот курс научит вас программировать на PHP.");
+            phpCourse.setId(3L);
+
+            var webCourse = new Course("Web", "Этот курс научит вас разрабатывать приложения для Web.");
+            phpCourse.setId(4L);
+
+            courses.add(javaCourse);
+            courses.add(phpCourse);
+            courses.add(pythonCourse);
+            courses.add(webCourse);
+        }
+
+        return courses;
+    }
+
     public static void main(String[] args) {
 
         // Создаем приложение
@@ -125,21 +153,38 @@ public class HelloWorld {
         });
 
         app.get("/courses", ctx -> {
-            var javaCourse = new Course("Java", "Some description...");
-            javaCourse.setId(1L);
+            final var term = ctx.queryParam("term");
 
-            var pythonCourse = new Course("Python", "Some description...");
-            pythonCourse.setId(2L);
+            List<Course> resultList = new ArrayList<>();
 
-            var phpCourse = new Course("PHP", "Some description...");
-            phpCourse.setId(3L);
+            if (term != null) {
+                for (var course : courses) {
+                   if (course.getName().equals(term)) {
 
-            List<Course> courses = new ArrayList<>();
-            courses.add(javaCourse);
-            courses.add(phpCourse);
-            courses.add(pythonCourse);
+                   }
+                }
 
-            var page = new CoursesPage(courses, "Доступные курсы");
+                resultList = courses.stream()
+                        .filter(
+                                course -> (
+                                        course.getName().equals(term))
+                        ).toList();
+
+                if (resultList.isEmpty()) {
+                    resultList = courses.stream()
+                            .filter(
+                                    course -> (
+                                            course.getDescription().contains(term))
+                            ).toList();
+                }
+
+            } else {
+                resultList = courses;
+            }
+
+            var currentTerm = (term != null) ? term : courses.getFirst().getName();
+
+            var page = new CoursesPage(resultList, "Доступные курсы", currentTerm);
             ctx.render("courses/index.jte", model("page", page));
         });
 
