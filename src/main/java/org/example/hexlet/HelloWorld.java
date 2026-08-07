@@ -114,6 +114,10 @@ public class HelloWorld {
             ctx.result("Hello, " + name + "!");
         });
 
+        app.get("/courses/build", ctx -> {
+            ctx.render("courses/build.jte");
+        });
+
         app.get("/courses/{id}", ctx -> {
             var id = ctx.pathParamAsClass("id", Long.class).getOrDefault(0L);
 
@@ -159,6 +163,14 @@ public class HelloWorld {
 
             var page = new CoursesPage(resultList, "Доступные курсы", currentTerm);
             ctx.render("courses/index.jte", model("page", page));
+        });
+
+        app.post("/courses", ctx -> {
+            var name = ctx.formParam("name");
+            var description = ctx.formParam("description");
+            var course = new Course(name, description);
+            CourseRepository.save(course);
+            ctx.redirect("/courses");
         });
 
         app.start(7070); // Стартуем веб-сервер

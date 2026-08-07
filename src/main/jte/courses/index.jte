@@ -27,6 +27,12 @@ content = @`
                 @endfor
             @endif
         </section>
+
+        <section>
+            <h4>
+                <a href="courses/build">Добавить курс</a>
+            </h4>
+        </section>
     </main>
 `
 ,
