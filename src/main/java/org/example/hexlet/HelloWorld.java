@@ -3,6 +3,7 @@ package org.example.hexlet;
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.rendering.template.JavalinJte;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.dto.courses.CoursesPage;
@@ -123,7 +124,10 @@ public class HelloWorld {
 
             if ((name != null) && (email != null) && (password != null) && (passwordConfirmation != null)) {
                 if (password.equals(passwordConfirmation)) {
-                    var user = new User(name,email, password);
+                    name = StringUtils.capitalize(name.trim().toLowerCase());
+                    email = email.trim().toLowerCase();
+
+                    var user = new User(name, email, password);
                     UserRepository.save(user);
 
                     // После добавления нового пользователя в базу,
