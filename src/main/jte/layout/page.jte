@@ -29,11 +29,16 @@
                     <li>
                         <a href="/courses"> Курсы </a>
                     </li>
+                    <li>
+                        <a href="/users"> Пользователи </a>
+                    </li>
                 </ul>
             </nav>
         </header>
 
-        ${content}
+        <main>
+            ${content}
+        </main>
 
         <footer>
             @if (footer != null)

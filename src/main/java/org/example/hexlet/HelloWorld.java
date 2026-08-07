@@ -1,18 +1,25 @@
 package org.example.hexlet;
 
 import io.javalin.Javalin;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.rendering.template.JavalinJte;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.dto.courses.CoursesPage;
+import org.example.hexlet.dto.users.UserPage;
+import org.example.hexlet.dto.users.UsersPage;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.dto.courses.CoursePage;
+import org.example.hexlet.model.User;
 import org.example.hexlet.repository.CourseRepository;
+import org.example.hexlet.repository.UserRepository;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 import static java.util.stream.Collectors.toList;
@@ -100,6 +107,58 @@ public class HelloWorld {
             ctx.result("<h1>" + escapedId + "</h1>");
         });
 
+        // Просмотр страницы со списком пользователей
+        app.get("/users", ctx -> {
+            var users = UserRepository.getEntities();
+            var page = new UsersPage(users);
+            ctx.render("users/index.jte", model("page", page));
+        });
+
+        // Добавление нового пользователя
+        app.post("/users", ctx -> {
+            var name = ctx.formParam("name");
+            var email = ctx.formParam("email");
+            var password = ctx.formParam("password");
+            var passwordConfirmation = ctx.formParam("passwordConfirmation");
+
+            if ((name != null) && (email != null) && (password != null) && (passwordConfirmation != null)) {
+                if (password.equals(passwordConfirmation)) {
+                    var user = new User(name,email, password);
+                    UserRepository.save(user);
+
+                    // После добавления нового пользователя в базу,
+                    // отобразить страницу со списком всех пользователей
+                    ctx.redirect("/users");
+                } else {
+                    throw new BadRequestResponse("A password was not confirmed.");
+                }
+            } else {
+                throw new BadRequestResponse("Bad parameters");
+            }
+        });
+
+        // Отображение формы для добавления пользователей
+        app.get("/users/build", ctx -> {
+            ctx.render("users/build.jte");
+        });
+
+        // Отображение страницы конкретного пользователя из списка
+        app.get("/users/{id}", ctx -> {
+            var sid = ctx.pathParam("id");
+
+            long id = NumberUtils.toLong(sid, 0L);
+            if (id != 0) {
+                var user = UserRepository.find(id);
+
+                if (user.isPresent()) {
+                    var page = new UserPage(user.get());
+                    ctx.render("users/selectedUser.jte", model("page", page));
+                    return;
+                }
+            }
+
+            throw new BadRequestResponse("Failed to find an users with id = "  + id);
+        });
 
         app.get("/users/{id}/post/{postId}", ctx -> {
             var id = ctx.pathParamAsClass("id", String.class).get();
@@ -108,7 +167,6 @@ public class HelloWorld {
             ctx.result("user id = " + id + ", postId = " + postId);
         });
 
-        app.post("/users", ctx -> ctx.result("POST /users"));
         app.get("/hello", ctx -> {
             var name = ctx.queryParamAsClass("name", String.class).getOrDefault("World");
             ctx.result("Hello, " + name + "!");
@@ -119,18 +177,17 @@ public class HelloWorld {
         });
 
         app.get("/courses/{id}", ctx -> {
-            var id = ctx.pathParamAsClass("id", Long.class).getOrDefault(0L);
+            var sid = ctx.pathParam("id");
 
-            var courses = CourseRepository.getEntities();
+            long id = NumberUtils.toLong(sid, 0L);
 
-            var course = courses.stream()
-                    .filter(
-                            c -> (c.getId().longValue() == id)
-                    ).findFirst();
+            var course = CourseRepository.find(id);
 
             if (course.isPresent()) {
                 var page = new CoursePage(course.get());
                 ctx.render("courses/selectedCourse.jte", model("page", page));
+            } else {
+                throw new BadRequestResponse("Failed to find a course with id = " + id);
             }
         });
 

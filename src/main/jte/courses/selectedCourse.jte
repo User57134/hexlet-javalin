@@ -6,12 +6,10 @@ content = @`
 <%-- Содержимое страницы --%>
     <h2>Курс</h2>
 
-    <main>
-        <section>
-            <h1>${page.getCourse().getName()}</h1>
-            <p>${page.getCourse().getDescription()}</p>
-        </section>
-    </main>
+    <section>
+        <h1>${page.getCourse().getName()}</h1>
+        <p>${page.getCourse().getDescription()}</p>
+    </section>
 `
 ,
 footer = @`
