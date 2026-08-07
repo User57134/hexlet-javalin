@@ -6,6 +6,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.dto.courses.CoursesPage;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.dto.courses.CoursePage;
+import org.example.hexlet.repository.CourseRepository;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
@@ -17,34 +18,23 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 import static java.util.stream.Collectors.toList;
 
 public class HelloWorld {
-    static List<Course> courses = getCourses();
 
-    public static List<Course> getCourses() {
-        if (courses == null) {
-            courses = new ArrayList<>();
+    public static void createCourses() {
+        var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
+        CourseRepository.save(javaCourse);
 
-            var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
-            javaCourse.setId(1L);
+        var pythonCourse = new Course("Python", "Этот курс научит вас программировать на Python");
+        CourseRepository.save(pythonCourse);
 
-            var pythonCourse = new Course("Python", "Этот курс научит вас программировать на Python");
-            pythonCourse.setId(2L);
+        var phpCourse = new Course("PHP", "Этот курс научит вас программировать на PHP.");
+        CourseRepository.save(phpCourse);
 
-            var phpCourse = new Course("PHP", "Этот курс научит вас программировать на PHP.");
-            phpCourse.setId(3L);
-
-            var webCourse = new Course("Web", "Этот курс научит вас разрабатывать приложения для Web.");
-            phpCourse.setId(4L);
-
-            courses.add(javaCourse);
-            courses.add(phpCourse);
-            courses.add(pythonCourse);
-            courses.add(webCourse);
-        }
-
-        return courses;
+        var webCourse = new Course("Web", "Этот курс научит вас разрабатывать приложения для Web.");
+        CourseRepository.save(webCourse);
     }
 
     public static void main(String[] args) {
+        createCourses();
 
         // Создаем приложение
         var app = Javalin.create(config -> {
@@ -127,43 +117,26 @@ public class HelloWorld {
         app.get("/courses/{id}", ctx -> {
             var id = ctx.pathParamAsClass("id", Long.class).getOrDefault(0L);
 
-            Course course = null;
-            int intid = id.intValue();
+            var courses = CourseRepository.getEntities();
 
-            switch (intid) {
-                case 1:
-                    course = new Course("Java", "Some description...");
-                    break;
+            var course = courses.stream()
+                    .filter(
+                            c -> (c.getId().longValue() == id)
+                    ).findFirst();
 
-                case 2:
-                    course = new Course("Python", "Some description...");
-                    break;
-
-                case 3:
-                    course = new Course("PHP", "Some description...");
-                    break;
-
-                default:
-                    throw new RuntimeException("not supported course");
+            if (course.isPresent()) {
+                var page = new CoursePage(course.get());
+                ctx.render("courses/selectedCourse.jte", model("page", page));
             }
-
-
-            var page = new CoursePage(course);
-            ctx.render("courses/selectedCourse.jte", model("page", page));
         });
 
         app.get("/courses", ctx -> {
             final var term = ctx.queryParam("term");
 
+            var courses = CourseRepository.getEntities();
             List<Course> resultList = new ArrayList<>();
 
             if (term != null) {
-                for (var course : courses) {
-                   if (course.getName().equals(term)) {
-
-                   }
-                }
-
                 resultList = courses.stream()
                         .filter(
                                 course -> (
