@@ -3,10 +3,12 @@ package org.example.hexlet;
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.rendering.template.JavalinJte;
+import io.javalin.validation.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.dto.courses.CoursesPage;
+import org.example.hexlet.dto.users.BuildUserPage;
 import org.example.hexlet.dto.users.UserPage;
 import org.example.hexlet.dto.users.UsersPage;
 import org.example.hexlet.model.Course;
@@ -18,9 +20,7 @@ import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 import static java.util.stream.Collectors.toList;
@@ -117,33 +117,34 @@ public class HelloWorld {
 
         // Добавление нового пользователя
         app.post("/users", ctx -> {
-            var name = ctx.formParam("name");
-            var email = ctx.formParam("email");
-            var password = ctx.formParam("password");
-            var passwordConfirmation = ctx.formParam("passwordConfirmation");
+            var name = StringUtils.capitalize(ctx.formParam("name").trim().toLowerCase());
+            var email = ctx.formParam("email").trim().toLowerCase();
 
-            if ((name != null) && (email != null) && (password != null) && (passwordConfirmation != null)) {
-                if (password.equals(passwordConfirmation)) {
-                    name = StringUtils.capitalize(name.trim().toLowerCase());
-                    email = email.trim().toLowerCase();
+            // Проверка совпадения пароля и его подтверждения
+            try {
+                var passwordConfirmation = ctx.formParam("passwordConfirmation");
+                var password = ctx.formParamAsClass("password", String.class)
+                        .check(value -> value.equals(passwordConfirmation), "Пароли не совпадают")
+                        .get();
 
-                    var user = new User(name, email, password);
-                    UserRepository.save(user);
+                var user = new User(name, email, password);
+                UserRepository.save(user);
 
-                    // После добавления нового пользователя в базу,
-                    // отобразить страницу со списком всех пользователей
-                    ctx.redirect("/users");
-                } else {
-                    throw new BadRequestResponse("A password was not confirmed.");
-                }
-            } else {
-                throw new BadRequestResponse("Bad parameters");
+                // После успешного добавления нового пользователя в базу,
+                // отобразить страницу со списком всех пользователей
+                ctx.redirect("/users");
+
+            // Передача ошибок в на исходную страницу добавление пользователя
+            } catch (ValidationException e) {
+                var page = new BuildUserPage(name, email, e.getErrors());
+                ctx.render("users/build.jte", model("page", page));
             }
         });
 
         // Отображение формы для добавления пользователей
         app.get("/users/build", ctx -> {
-            ctx.render("users/build.jte");
+            var page = new BuildUserPage();
+            ctx.render("users/build.jte", model("page", page));
         });
 
         // Отображение страницы конкретного пользователя из списка
