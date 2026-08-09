@@ -109,14 +109,14 @@ public class HelloWorld {
         });
 
         // Просмотр страницы со списком пользователей
-        app.get("/users", ctx -> {
+        app.get(NamedRoutes.usersPath(), ctx -> {
             var users = UserRepository.getEntities();
             var page = new UsersPage(users);
             ctx.render("users/index.jte", model("page", page));
         });
 
         // Добавление нового пользователя
-        app.post("/users", ctx -> {
+        app.post(NamedRoutes.usersPath(), ctx -> {
             var name = StringUtils.capitalize(ctx.formParam("name").trim().toLowerCase());
             var email = ctx.formParam("email").trim().toLowerCase();
 
@@ -132,7 +132,7 @@ public class HelloWorld {
 
                 // После успешного добавления нового пользователя в базу,
                 // отобразить страницу со списком всех пользователей
-                ctx.redirect("/users");
+                ctx.redirect(NamedRoutes.usersPath());
 
             // Передача ошибок в на исходную страницу добавление пользователя
             } catch (ValidationException e) {
@@ -142,13 +142,13 @@ public class HelloWorld {
         });
 
         // Отображение формы для добавления пользователей
-        app.get("/users/build", ctx -> {
+        app.get(NamedRoutes.buildUserPath(), ctx -> {
             var page = new BuildUserPage();
             ctx.render("users/build.jte", model("page", page));
         });
 
         // Отображение страницы конкретного пользователя из списка
-        app.get("/users/{id}", ctx -> {
+        app.get(NamedRoutes.userPath("{id}"), ctx -> {
             var sid = ctx.pathParam("id");
 
             long id = NumberUtils.toLong(sid, 0L);
@@ -177,11 +177,11 @@ public class HelloWorld {
             ctx.result("Hello, " + name + "!");
         });
 
-        app.get("/courses/build", ctx -> {
+        app.get(NamedRoutes.buildCoursePath(), ctx -> {
             ctx.render("courses/build.jte");
         });
 
-        app.get("/courses/{id}", ctx -> {
+        app.get(NamedRoutes.coursePath("{id}"), ctx -> {
             var sid = ctx.pathParam("id");
 
             long id = NumberUtils.toLong(sid, 0L);
@@ -196,7 +196,7 @@ public class HelloWorld {
             }
         });
 
-        app.get("/courses", ctx -> {
+        app.get(NamedRoutes.coursesPath(), ctx -> {
             final var term = ctx.queryParam("term");
 
             var courses = CourseRepository.getEntities();
@@ -227,12 +227,12 @@ public class HelloWorld {
             ctx.render("courses/index.jte", model("page", page));
         });
 
-        app.post("/courses", ctx -> {
+        app.post(NamedRoutes.coursesPath(), ctx -> {
             var name = ctx.formParam("name");
             var description = ctx.formParam("description");
             var course = new Course(name, description);
             CourseRepository.save(course);
-            ctx.redirect("/courses");
+            ctx.redirect(NamedRoutes.coursesPath());
         });
 
         app.start(7070); // Стартуем веб-сервер

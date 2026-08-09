@@ -1,3 +1,4 @@
+@import org.example.hexlet.NamedRoutes
 @import org.example.hexlet.dto.users.BuildUserPage
 @param BuildUserPage page
 
@@ -24,7 +25,7 @@
 
         <h3>Добавить нового пользователя</h3>
 
-        <form action="/users" method="post">
+        <form action="${NamedRoutes.usersPath()}" method="post">
            <fieldset>
                <legend>Данные пользователя</legend>
                <label for="1">Имя</label>

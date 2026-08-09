@@ -1,3 +1,4 @@
+@import org.example.hexlet.NamedRoutes
 @import org.example.hexlet.dto.users.UsersPage
 @param UsersPage page
 
@@ -22,7 +23,7 @@ content = @`
                           ${user.getId()}
                       </td>
                       <td>
-                          <a href="users/${user.getId()}">${user.getName()}</a>
+                          <a href="${NamedRoutes.userPath(user.getId())}">${user.getName()}</a>
                       </td>
                       <td>
                           ${user.getEmail()}
@@ -35,7 +36,7 @@ content = @`
 
     <section>
         <h4>
-            <a href="users/build">Добавить пользователя</a>
+            <a href="${NamedRoutes.buildUserPath()}">Добавить пользователя</a>
         </h4>
     </section>
 

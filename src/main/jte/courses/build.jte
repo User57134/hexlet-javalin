@@ -1,10 +1,12 @@
+@import org.example.hexlet.NamedRoutes
+
 <html>
 <head>
     <meta charset="utf-8">
     <title>Добавить курс</title>
 </head>
 <body>
-<form action="/courses" method="post">
+<form action="${NamedRoutes.coursesPath()}" method="post">
     <div>
         <label>
             Название

@@ -1,3 +1,4 @@
+@import org.example.hexlet.NamedRoutes
 @import org.example.hexlet.dto.courses.CoursesPage
 @param CoursesPage page
 
@@ -19,7 +20,7 @@ content = @`
             @for(var course : page.getCourses())
                 <section>
                     <h2>
-                        <a href="/courses/${course.getId()}">${course.getName()}</a>
+                        <a href="${NamedRoutes.coursePath(course.getId())}">${course.getName()}</a>
                     </h2>
                     <p>${course.getDescription()}</p>
                 </section>
@@ -29,7 +30,7 @@ content = @`
 
     <section>
         <h4>
-            <a href="courses/build">Добавить курс</a>
+            <a href="${NamedRoutes.buildCoursePath()}">Добавить курс</a>
         </h4>
     </section>
 `
