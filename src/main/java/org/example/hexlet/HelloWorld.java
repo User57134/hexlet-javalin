@@ -7,6 +7,7 @@ import io.javalin.validation.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.example.hexlet.controller.UsersController;
 import org.example.hexlet.dto.courses.CoursesPage;
 import org.example.hexlet.dto.users.BuildUserPage;
 import org.example.hexlet.dto.users.UserPage;
@@ -49,6 +50,7 @@ public class HelloWorld {
             config.bundledPlugins.enableDevLogging();
             config.fileRenderer(new JavalinJte());
         });
+
 
         // Описываем, что загрузится по адресу /
         app.get("/", ctx -> {
@@ -108,62 +110,39 @@ public class HelloWorld {
             ctx.result("<h1>" + escapedId + "</h1>");
         });
 
-        // Просмотр страницы со списком пользователей
-        app.get(NamedRoutes.usersPath(), ctx -> {
-            var users = UserRepository.getEntities();
-            var page = new UsersPage(users);
-            ctx.render("users/index.jte", model("page", page));
-        });
+        // Обработка запроса на просмотр страницы со списком всех пользователей
+        app.get(NamedRoutes.usersPath(), UsersController::showAllUsers);
 
-        // Добавление нового пользователя
-        app.post(NamedRoutes.usersPath(), ctx -> {
-            var name = StringUtils.capitalize(ctx.formParam("name").trim().toLowerCase());
-            var email = ctx.formParam("email").trim().toLowerCase();
-
-            // Проверка совпадения пароля и его подтверждения
-            try {
-                var passwordConfirmation = ctx.formParam("passwordConfirmation");
-                var password = ctx.formParamAsClass("password", String.class)
-                        .check(value -> value.equals(passwordConfirmation), "Пароли не совпадают")
-                        .get();
-
-                var user = new User(name, email, password);
-                UserRepository.save(user);
-
-                // После успешного добавления нового пользователя в базу,
-                // отобразить страницу со списком всех пользователей
-                ctx.redirect(NamedRoutes.usersPath());
-
-            // Передача ошибок в на исходную страницу добавление пользователя
-            } catch (ValidationException e) {
-                var page = new BuildUserPage(name, email, e.getErrors());
-                ctx.render("users/build.jte", model("page", page));
-            }
-        });
+        // Обработка запросов на добавление нового пользователя
+        app.post(NamedRoutes.usersPath(), UsersController::createUser);
 
         // Отображение формы для добавления пользователей
-        app.get(NamedRoutes.buildUserPath(), ctx -> {
-            var page = new BuildUserPage();
-            ctx.render("users/build.jte", model("page", page));
-        });
+        app.get(NamedRoutes.buildUserPath(), UsersController::buildUser);
 
-        // Отображение страницы конкретного пользователя из списка
-        app.get(NamedRoutes.userPath("{id}"), ctx -> {
-            var sid = ctx.pathParam("id");
+        // Обработка запросов на отображение страницы конкретного пользователя из списка
+        app.get(NamedRoutes.userPath("{id}"), UsersController::showUser);
 
-            long id = NumberUtils.toLong(sid, 0L);
-            if (id != 0) {
-                var user = UserRepository.find(id);
+        // Отображение формы редактирования данных пользователя
+        app.get(NamedRoutes.userEditPath("{id}"), UsersController::editUserData);
 
-                if (user.isPresent()) {
-                    var page = new UserPage(user.get());
-                    ctx.render("users/selectedUser.jte", model("page", page));
-                    return;
-                }
+        // Запросы на обновление и удаление пользователя имеют одинаковый маршрут,
+        // так как через тег 'form' из HTML отправляются только GET или POST запросы,
+        // поэтому дополнительно используется скрытый элемент с именем '_method'
+        // и значением - реальное запрашиваемое действие:
+        // <input type="hidden" name="_method" value="PATCH">
+        // <input type="hidden" name="_method" value="DELETE">
+        app.post(NamedRoutes.userPath("{id}"), ctx -> {
+            String method = ctx.formParam("_method");
+
+            if ("PATCH".equalsIgnoreCase(method)) {
+                UsersController.updateUser(ctx);
+
+                // Обработка запросов на удаление пользователя
+            } else if ("DELETE".equalsIgnoreCase(method)) {
+                UsersController.deleteUser(ctx);
             }
-
-            throw new BadRequestResponse("Failed to find an users with id = "  + id);
         });
+
 
         app.get("/users/{id}/post/{postId}", ctx -> {
             var id = ctx.pathParamAsClass("id", String.class).get();

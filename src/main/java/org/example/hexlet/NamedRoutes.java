@@ -9,11 +9,15 @@ public class NamedRoutes {
     }
 
     public static String userPath(Long id) {
-        return coursePath(String.valueOf(id));
+        return userPath(String.valueOf(id));
     }
 
     public static String userPath(String id) {
         return "/users/" + id;
+    }
+
+    public static String userEditPath(Long id) {
+        return userEditPath(String.valueOf(id));
     }
 
     public static String userEditPath(String id) {

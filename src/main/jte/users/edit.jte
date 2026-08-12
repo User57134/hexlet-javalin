@@ -25,9 +25,10 @@
 
     <h3>${page.getName()}</h3>
 
-    <form action="${NamedRoutes.usersPath()}" method="post">
+    <form action="${NamedRoutes.usersPath()}" method="POST">
         <fieldset>
             <legend>Данные пользователя</legend>
+            <input type="hidden" name="_method" value="PATCH">
             <label for="1">Имя</label>
             <input id="1" type="text" name="name" value="${page.getName()}" required />
             <label for="2">Электронная почта</label>
@@ -36,7 +37,7 @@
             <input id="3" type="password" name="password" required />
             <label for="4">Подтверждение пароля</label>
             <input id="4" type="password" name="passwordConfirmation" required />
-            <input type="submit" value="Добавить" />
+            <input type="submit" value="Сохранить" />
         </fieldset>
     </form>
 </main>

@@ -25,13 +25,13 @@ public class UserRepository {
 
     public static Optional<User> find(Long id) {
         var maybeUser = entities.stream()
-                .filter(entity -> entity.getId() == id)
+                .filter(entity -> entity.getId().equals(id))
                 .findAny();
         return maybeUser;
     }
 
-    public static void delete(Long id) {
-        entities.removeIf(user -> user.getId() == id);
+    public static boolean delete(Long id) {
+        return entities.removeIf(user -> user.getId().equals(id));
     }
 
     public static void removeAll() {
