@@ -1,5 +1,7 @@
 package org.example.hexlet;
 
+import org.jetbrains.annotations.NotNull;
+
 public class NamedRoutes {
 
     public static String usersPath() {
@@ -12,6 +14,10 @@ public class NamedRoutes {
 
     public static String userPath(String id) {
         return "/users/" + id;
+    }
+
+    public static String userEditPath(String id) {
+        return "/users/" + id + "/edit";
     }
 
     public static String buildUserPath() {
