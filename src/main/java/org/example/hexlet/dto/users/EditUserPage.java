@@ -8,11 +8,24 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class BuildUserPage {
+public class EditUserPage {
+    private Long id;
     private String name;
     private String email;
     private Map<String, List<ValidationError<Object>>> errors;
+
+    public EditUserPage(String name, String email, Map<String, List<ValidationError<Object>>> errors) {
+        id = null;
+        this.name = name;
+        this.email = email;
+        this.errors = errors;
+    }
+
+    public EditUserPage(String name, String email) {
+        this(name, email, null);
+    }
 }

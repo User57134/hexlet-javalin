@@ -8,6 +8,7 @@ import org.example.hexlet.NamedRoutes;
 import org.example.hexlet.dto.courses.BuildCoursePage;
 import org.example.hexlet.dto.courses.CoursePage;
 import org.example.hexlet.dto.courses.CoursesPage;
+import org.example.hexlet.dto.courses.EditCoursePage;
 import org.example.hexlet.dto.errors.ErrorResponse;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.repository.CourseRepository;
@@ -110,10 +111,12 @@ public class CoursesController {
 
         long id = NumberUtils.toLong(sid, 0L);
         if (id != 0) {
-            var course = CourseRepository.find(id);
+            var courseSearchResult = CourseRepository.find(id);
 
-            if (course.isPresent()) {
-                var page = new BuildCoursePage(id, course.get().getName(), course.get().getDescription(), null);
+            if (courseSearchResult.isPresent()) {
+                var course = courseSearchResult.get();
+                var page = new EditCoursePage(id, course.getName(), course.getDescription(), null);
+
                 ctx.render("courses/edit.jte", model("page", page));
 
                 return;
@@ -152,12 +155,13 @@ public class CoursesController {
                     course.setDescription(description);
 
                     ctx.redirect(NamedRoutes.coursesPath());
+
                     return;
                 }
 
             } catch (ValidationException e) {
-                var page = new BuildCoursePage(name, description, e.getErrors());
-                ctx.render("courses/build.jte", model("page", page));
+                var page = new EditCoursePage(id, name, description, e.getErrors());
+                ctx.render("courses/edit.jte", model("page", page));
             }
         }
 

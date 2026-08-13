@@ -8,6 +8,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.example.hexlet.NamedRoutes;
 import org.example.hexlet.dto.errors.ErrorResponse;
 import org.example.hexlet.dto.users.BuildUserPage;
+import org.example.hexlet.dto.users.EditUserPage;
 import org.example.hexlet.dto.users.UserPage;
 import org.example.hexlet.dto.users.UsersPage;
 import org.example.hexlet.model.User;
@@ -96,11 +97,14 @@ public class UsersController {
 
         long id = NumberUtils.toLong(sid, 0L);
         if (id != 0) {
-            var user = UserRepository.find(id);
+            var userSearchResult = UserRepository.find(id);
 
-            if (user.isPresent()) {
-                var page = new BuildUserPage(id, user.get().getName(), user.get().getEmail(), null);
+            if (userSearchResult.isPresent()) {
+                var user = userSearchResult.get();
+                var page = new EditUserPage(id, user.getName(), user.getEmail(), null);
+
                 ctx.render("users/edit.jte", model("page", page));
+
                 return;
             }
         }
@@ -148,12 +152,13 @@ public class UsersController {
                     user.setPassword(password);
 
                     ctx.redirect(NamedRoutes.usersPath());
+
                     return;
                 }
 
             } catch (ValidationException e) {
-                var page = new BuildUserPage(name, email, e.getErrors());
-                ctx.render("users/build.jte", model("page", page));
+                var page = new EditUserPage(id, name, email, e.getErrors());
+                ctx.render("users/edit.jte", model("page", page));
                 return;
             }
         }
