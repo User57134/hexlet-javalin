@@ -1,11 +1,11 @@
 @import org.example.hexlet.NamedRoutes
-@import org.example.hexlet.dto.users.BuildUserPage
-@param BuildUserPage page
+@import org.example.hexlet.dto.courses.BuildCoursePage
+@param BuildCoursePage page
 
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Изменение данных пользователя</title>
+    <title>Изменение данных курса</title>
 </head>
 
 <body>
@@ -25,18 +25,14 @@
 
     <h3>${page.getName()}</h3>
 
-    <form action="${NamedRoutes.userPath(page.getId())}" method="POST">
+    <form action="${NamedRoutes.coursePath(page.getId())}" method="POST">
         <fieldset>
             <legend>Данные пользователя</legend>
             <input type="hidden" name="_method" value="PATCH">
-            <label for="1">Имя</label>
+            <label for="1">Название курса</label>
             <input id="1" type="text" name="name" value="${page.getName()}" required />
-            <label for="2">Электронная почта</label>
-            <input id="2" type="email" name="email" value="${page.getEmail()}" required />
-            <label for="3">Пароль</label>
-            <input id="3" type="password" name="password" required />
-            <label for="4">Подтверждение пароля</label>
-            <input id="4" type="password" name="passwordConfirmation" required />
+            <label for="2">Описание</label>
+            <textarea id="2" rows="5" cols="30" style="resize:none" name="description">${page.getDescription()}</textarea>
             <input type="submit" value="Сохранить" />
         </fieldset>
     </form>

@@ -1,3 +1,4 @@
+@import org.example.hexlet.NamedRoutes
 @import org.example.hexlet.dto.courses.CoursePage
 @param CoursePage page
 
@@ -9,6 +10,15 @@ content = @`
     <section>
         <h1>${page.getCourse().getName()}</h1>
         <p>${page.getCourse().getDescription()}</p>
+
+        <p>
+            <a href="${NamedRoutes.courseEditPath(page.getCourse().getId())}">Редактировать данные</a>
+        </p>
+
+        <form action="${NamedRoutes.coursePath(page.getCourse().getId())}" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Удалить курс" />
+        </form>
     </section>
 `
 ,

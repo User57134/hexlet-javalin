@@ -1,30 +1,15 @@
 package org.example.hexlet;
 
 import io.javalin.Javalin;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.rendering.template.JavalinJte;
-import io.javalin.validation.ValidationException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.example.hexlet.controller.CoursesController;
 import org.example.hexlet.controller.UsersController;
-import org.example.hexlet.dto.courses.CoursesPage;
-import org.example.hexlet.dto.users.BuildUserPage;
-import org.example.hexlet.dto.users.UserPage;
-import org.example.hexlet.dto.users.UsersPage;
 import org.example.hexlet.model.Course;
-import org.example.hexlet.dto.courses.CoursePage;
-import org.example.hexlet.model.User;
 import org.example.hexlet.repository.CourseRepository;
-import org.example.hexlet.repository.UserRepository;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
-
-import java.util.*;
-
-import static io.javalin.rendering.template.TemplateUtil.model;
-import static java.util.stream.Collectors.toList;
 
 public class HelloWorld {
 
@@ -51,10 +36,15 @@ public class HelloWorld {
             config.fileRenderer(new JavalinJte());
         });
 
-
         // Описываем, что загрузится по адресу /
         app.get("/", ctx -> {
             ctx.render("index.jte");
+        });
+
+        // Описываем, что загрузится по адресу /hello
+        app.get("/hello", ctx -> {
+            var name = ctx.queryParamAsClass("name", String.class).getOrDefault("World");
+            ctx.result("Hello, " + name + "!");
         });
 
         // добавление небезопасной (доверяющей данным пользователя) обработки данных:
@@ -111,19 +101,19 @@ public class HelloWorld {
         });
 
         // Обработка запроса на просмотр страницы со списком всех пользователей
-        app.get(NamedRoutes.usersPath(), UsersController::showAllUsers);
+        app.get(NamedRoutes.usersPath(), UsersController::showAll);
 
         // Обработка запросов на добавление нового пользователя
-        app.post(NamedRoutes.usersPath(), UsersController::createUser);
+        app.post(NamedRoutes.usersPath(), UsersController::create);
 
         // Отображение формы для добавления пользователей
-        app.get(NamedRoutes.buildUserPath(), UsersController::buildUser);
+        app.get(NamedRoutes.buildUserPath(), UsersController::build);
 
         // Обработка запросов на отображение страницы конкретного пользователя из списка
-        app.get(NamedRoutes.userPath("{id}"), UsersController::showUser);
+        app.get(NamedRoutes.userPath("{id}"), UsersController::show);
 
         // Отображение формы редактирования данных пользователя
-        app.get(NamedRoutes.userEditPath("{id}"), UsersController::editUserData);
+        app.get(NamedRoutes.userEditPath("{id}"), UsersController::editData);
 
         // Запросы на обновление и удаление пользователя имеют одинаковый маршрут,
         // так как через тег 'form' из HTML отправляются только GET или POST запросы,
@@ -135,11 +125,11 @@ public class HelloWorld {
             String method = ctx.formParam("_method");
 
             if ("PATCH".equalsIgnoreCase(method)) {
-                UsersController.updateUser(ctx);
+                UsersController.update(ctx);
 
                 // Обработка запросов на удаление пользователя
             } else if ("DELETE".equalsIgnoreCase(method)) {
-                UsersController.deleteUser(ctx);
+                UsersController.delete(ctx);
             }
         });
 
@@ -151,67 +141,32 @@ public class HelloWorld {
             ctx.result("user id = " + id + ", postId = " + postId);
         });
 
-        app.get("/hello", ctx -> {
-            var name = ctx.queryParamAsClass("name", String.class).getOrDefault("World");
-            ctx.result("Hello, " + name + "!");
-        });
+        // Обработка запроса на просмотр страницы со списком всех курсов
+        app.get(NamedRoutes.coursesPath(), CoursesController::showAll);
 
-        app.get(NamedRoutes.buildCoursePath(), ctx -> {
-            ctx.render("courses/build.jte");
-        });
+        // Отображение формы для добавления курса
+        app.get(NamedRoutes.buildCoursePath(), CoursesController::build);
 
-        app.get(NamedRoutes.coursePath("{id}"), ctx -> {
-            var sid = ctx.pathParam("id");
+        // Обработка запросов на отображение страницы конкретного курса из списка
+        app.get(NamedRoutes.coursePath("{id}"), CoursesController::show);
 
-            long id = NumberUtils.toLong(sid, 0L);
+        // Обработка запросов на добавление нового курса
+        app.post(NamedRoutes.coursesPath(), CoursesController::create);
 
-            var course = CourseRepository.find(id);
+        // Отображение формы редактирования данных курса
+        app.get(NamedRoutes.courseEditPath("{id}"), CoursesController::editData);
 
-            if (course.isPresent()) {
-                var page = new CoursePage(course.get());
-                ctx.render("courses/selectedCourse.jte", model("page", page));
-            } else {
-                throw new BadRequestResponse("Failed to find a course with id = " + id);
+        // Обработка запросов на обновление данных и удаление курса
+        app.post(NamedRoutes.coursePath("{id}"), ctx -> {
+            String method = ctx.formParam("_method");
+
+            if ("PATCH".equalsIgnoreCase(method)) {
+                CoursesController.update(ctx);
+
+                // Обработка запросов на удаление пользователя
+            } else if ("DELETE".equalsIgnoreCase(method)) {
+                CoursesController.delete(ctx);
             }
-        });
-
-        app.get(NamedRoutes.coursesPath(), ctx -> {
-            final var term = ctx.queryParam("term");
-
-            var courses = CourseRepository.getEntities();
-            List<Course> resultList = new ArrayList<>();
-
-            if (term != null) {
-                resultList = courses.stream()
-                        .filter(
-                                course -> (
-                                        course.getName().equals(term))
-                        ).toList();
-
-                if (resultList.isEmpty()) {
-                    resultList = courses.stream()
-                            .filter(
-                                    course -> (
-                                            course.getDescription().contains(term))
-                            ).toList();
-                }
-
-            } else {
-                resultList = courses;
-            }
-
-            var currentTerm = (term != null) ? term : courses.getFirst().getName();
-
-            var page = new CoursesPage(resultList, "Доступные курсы", currentTerm);
-            ctx.render("courses/index.jte", model("page", page));
-        });
-
-        app.post(NamedRoutes.coursesPath(), ctx -> {
-            var name = ctx.formParam("name");
-            var description = ctx.formParam("description");
-            var course = new Course(name, description);
-            CourseRepository.save(course);
-            ctx.redirect(NamedRoutes.coursesPath());
         });
 
         app.start(7070); // Стартуем веб-сервер

@@ -16,7 +16,7 @@
     <div>
         <label>
             Описание
-            <input type="text" required name="description"/>
+            <input type="text" name="description"/>
         </label>
     </div>
     <input type="submit" value="Добавить"/>

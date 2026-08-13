@@ -1,5 +1,6 @@
 package org.example.hexlet.dto.errors;
 
+import io.javalin.http.Context;
 import lombok.Getter;
 
 @Getter
@@ -14,5 +15,12 @@ public class ErrorResponse {
       this.status = status;
       this.description = description;
       timestamp = System.currentTimeMillis();
+  }
+
+  public static void sendErrors(Context ctx, String title, int status, String description) {
+      ErrorResponse er = new ErrorResponse(title, status, description);
+
+      ctx.status(status);
+      ctx.json(er);
   }
 }

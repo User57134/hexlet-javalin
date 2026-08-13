@@ -12,34 +12,46 @@ import org.example.hexlet.dto.users.UserPage;
 import org.example.hexlet.dto.users.UsersPage;
 import org.example.hexlet.model.User;
 import org.example.hexlet.repository.UserRepository;
-
 import io.javalin.http.Context;
-import io.javalin.http.NotFoundResponse;
+
 
 public class UsersController {
-    public static void showAllUsers(Context ctx) {
+    // Обработчик запроса на отображение сводной страницы пользователей
+    public static void showAll(Context ctx) {
         var users = UserRepository.getEntities();
         var page = new UsersPage(users);
         ctx.render("users/index.jte", model("page", page));
     }
 
 
-    public static void showUser(Context ctx) {
-        var id = ctx.pathParamAsClass("id", Long.class).get();
-        var user = UserRepository.find(id)
-                .orElseThrow(() -> new NotFoundResponse("Entity with id = " + id + " not found"));
-        var page = new UserPage(user);
-        ctx.render("users/show.jte", model("page", page));
+    // Обработчик запроса на отображение страницы пользователя
+    public static void show(Context ctx) {
+        var sid = ctx.pathParam("id");
+
+        long id = NumberUtils.toLong(sid, 0L);
+        if (id != 0) {
+            var user = UserRepository.find(id);
+
+            if (user.isPresent()) {
+                var page = new UserPage(user.get());
+                ctx.render("users/show.jte", model("page", page));
+                return;
+            }
+        }
+
+        ErrorResponse.sendErrors(ctx,"Internal Server Error", 500, "Некорректный id: " + sid);
     }
 
 
-    public static void buildUser(Context ctx) {
+    // Обработчик запроса на отображение формы добавления пользователя
+    public static void build(Context ctx) {
         var page = new BuildUserPage();
         ctx.render("users/build.jte", model("page", page));
     }
 
+
     // Обработчик запроса на создание пользователя
-    public static void createUser(Context ctx) {
+    public static void create(Context ctx) {
         String name = ctx.formParam("name");
         String email = ctx.formParam("email");
         String password = "";
@@ -77,8 +89,9 @@ public class UsersController {
         ctx.redirect(NamedRoutes.usersPath());
     }
 
+
     // Обработчик запроса на редактирование пользователя
-    public static void editUserData(Context ctx) {
+    public static void editData(Context ctx) {
         var sid = ctx.pathParam("id");
 
         long id = NumberUtils.toLong(sid, 0L);
@@ -86,17 +99,18 @@ public class UsersController {
             var user = UserRepository.find(id);
 
             if (user.isPresent()) {
-                var page = new BuildUserPage(user.get().getName(), user.get().getEmail(), null);
+                var page = new BuildUserPage(id, user.get().getName(), user.get().getEmail(), null);
                 ctx.render("users/edit.jte", model("page", page));
                 return;
-            } else {
-                throw new NotFoundResponse("Entity with id = " + id + " not found");
             }
         }
+
+        ErrorResponse.sendErrors(ctx,"Internal Server Error", 500, "Некорректный id: " + sid);
     }
 
+
     // Обработчик запроса на обновление данных пользователя
-    public static void updateUser(Context ctx) {
+    public static void update(Context ctx) {
         var sid = ctx.pathParam("id");
 
         long id = NumberUtils.toLong(sid, 0L);
@@ -125,31 +139,31 @@ public class UsersController {
                         .check(value -> value.equals(passwordConfirmation), "Пароли не совпадают")
                         .get();
 
+                var userSearchResult = UserRepository.find(id);
+
+                if (userSearchResult.isPresent()) {
+                    var user = userSearchResult.get();
+                    user.setName(name);
+                    user.setEmail(email);
+                    user.setPassword(password);
+
+                    ctx.redirect(NamedRoutes.usersPath());
+                    return;
+                }
+
             } catch (ValidationException e) {
                 var page = new BuildUserPage(name, email, e.getErrors());
                 ctx.render("users/build.jte", model("page", page));
                 return;
             }
-
-            var userSearchResult = UserRepository.find(id);
-
-            if (userSearchResult.isPresent()) {
-                var user = userSearchResult.get();
-                user.setName(name);
-                user.setEmail(email);
-                user.setPassword(password);
-
-                UserRepository.save(user);
-
-                ctx.redirect(NamedRoutes.usersPath());
-            } else {
-                throw new NotFoundResponse("Entity with id = " + id + " not found");
-            }
         }
+
+        ErrorResponse.sendErrors(ctx,"Internal Server Error", 500, "Некорректный id: " + sid);
     }
 
+
     // Обработчик запроса на удаление пользователя
-    public static void deleteUser(Context ctx) {
+    public static void delete(Context ctx) {
         var sid = ctx.pathParam("id");
 
         long id = NumberUtils.toLong(sid, 0L);
@@ -159,15 +173,9 @@ public class UsersController {
             if (result) {
                 ctx.redirect(NamedRoutes.usersPath());
                 return;
-            } else {
-                var resp = new ErrorResponse(
-                        "Internal Server Error"
-                        , 500
-                        , "Пользователя с id = " + id + " не существует");
-
-                ctx.status(500);
-                ctx.json(resp);
             }
         }
+
+        ErrorResponse.sendErrors(ctx,"Internal Server Error", 500, "Некорректный id: " + sid);
     }
 }
