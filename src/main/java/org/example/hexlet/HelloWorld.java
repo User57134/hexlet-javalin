@@ -1,7 +1,12 @@
 package org.example.hexlet;
 
 import io.javalin.Javalin;
+import io.javalin.http.InternalServerErrorResponse;
+import io.javalin.http.NotFoundResponse;
+import io.javalin.http.servlet.JavalinServletContext;
 import io.javalin.rendering.template.JavalinJte;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.controller.CoursesController;
 import org.example.hexlet.controller.UsersController;
@@ -9,9 +14,13 @@ import org.example.hexlet.model.Course;
 import org.example.hexlet.repository.CourseRepository;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.time.LocalDateTime;
 
 
 public class HelloWorld {
+    private static final Logger log = LoggerFactory.getLogger(HelloWorld.class);
 
     public static void createCourses() {
         var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
@@ -34,6 +43,12 @@ public class HelloWorld {
         var app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();
             config.fileRenderer(new JavalinJte());
+        });
+
+        // Этот промежуточный обработчик добавляет дату и время запроса
+        app.before(ctx -> {
+            var currentTimestamp = LocalDateTime.now();
+            log.info("input request received: "  + currentTimestamp);
         });
 
         // Описываем, что загрузится по адресу /
@@ -155,6 +170,12 @@ public class HelloWorld {
 
         // Отображение формы редактирования данных курса
         app.get(NamedRoutes.courseEditPath("{id}"), CoursesController::editData);
+
+        // Обработка запросов на обновление данных курса
+        app.patch(NamedRoutes.coursePath("{id}"), CoursesController::update);
+
+        // Обработка запросов на удаление данных курса
+        app.delete(NamedRoutes.coursePath("{id}"), CoursesController::delete);
 
         // Обработка запросов на обновление данных и удаление курса
         app.post(NamedRoutes.coursePath("{id}"), ctx -> {

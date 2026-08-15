@@ -1,6 +1,6 @@
 @import org.example.hexlet.NamedRoutes
-@import org.example.hexlet.dto.courses.BuildCoursePage
-@param BuildCoursePage page
+@import org.example.hexlet.dto.courses.EditCoursePage
+@param EditCoursePage page
 
 <html>
 <head>
