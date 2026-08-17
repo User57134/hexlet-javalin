@@ -61,4 +61,14 @@ public class NamedRoutes {
     public static String buildCoursePath() {
         return "/courses/build";
     }
+
+
+    public static String sessionsPath() {
+        return "/sessions";
+    }
+
+
+    public static String sessionsBuildPath() {
+        return "/sessions/build";
+    }
 }

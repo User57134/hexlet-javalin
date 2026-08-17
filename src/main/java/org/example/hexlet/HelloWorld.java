@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.controller.CoursesController;
+import org.example.hexlet.controller.SessionsController;
 import org.example.hexlet.controller.UsersController;
 import org.example.hexlet.dto.MainPage;
 import org.example.hexlet.model.Course;
@@ -56,11 +57,30 @@ public class HelloWorld {
 
         // Описываем, что загрузится по адресу /
         app.get("/", ctx -> {
-            var visited = Boolean.valueOf(ctx.cookie("visited"));
-            var page = new MainPage(visited);
+            String currentUser = ctx.sessionAttribute("currentUser");
+            var page = new MainPage(currentUser);
             ctx.render("index.jte", model("page", page));
-            ctx.cookie("visited", String.valueOf(true));
         });
+
+        // Отображение формы создания новой сессии(логин)
+        app.get(NamedRoutes.sessionsBuildPath(), SessionsController::build);
+
+        // Процесс логина
+        app.post(NamedRoutes.sessionsPath(), ctx -> {
+            String method = ctx.formParam("_method");
+
+            if (method != null) {
+                if ("DELETE".equalsIgnoreCase(method)) {
+                    SessionsController.destroy(ctx);
+                    return;
+                }
+            }
+
+            SessionsController.create(ctx);
+        });
+
+        // Процесс выхода из аккаунта
+        app.delete(NamedRoutes.sessionsPath(), SessionsController::destroy);
 
         // Описываем, что загрузится по адресу /hello
         app.get("/hello", ctx -> {
