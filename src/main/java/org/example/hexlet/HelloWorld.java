@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.controller.CoursesController;
 import org.example.hexlet.controller.UsersController;
+import org.example.hexlet.dto.MainPage;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.repository.CourseRepository;
 import org.owasp.html.HtmlPolicyBuilder;
@@ -17,6 +18,8 @@ import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
+
+import static io.javalin.rendering.template.TemplateUtil.model;
 
 
 public class HelloWorld {
@@ -53,7 +56,10 @@ public class HelloWorld {
 
         // Описываем, что загрузится по адресу /
         app.get("/", ctx -> {
-            ctx.render("index.jte");
+            var visited = Boolean.valueOf(ctx.cookie("visited"));
+            var page = new MainPage(visited);
+            ctx.render("index.jte", model("page", page));
+            ctx.cookie("visited", String.valueOf(true));
         });
 
         // Описываем, что загрузится по адресу /hello
