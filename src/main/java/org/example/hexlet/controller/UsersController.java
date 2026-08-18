@@ -5,7 +5,7 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 import io.javalin.validation.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.example.hexlet.NamedRoutes;
+import org.example.hexlet.util.NamedRoutes;
 import org.example.hexlet.dto.errors.ErrorResponse;
 import org.example.hexlet.dto.users.BuildUserPage;
 import org.example.hexlet.dto.users.EditUserPage;

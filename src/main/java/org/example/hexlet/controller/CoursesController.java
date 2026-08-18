@@ -1,10 +1,11 @@
 package org.example.hexlet.controller;
 
 import io.javalin.http.Context;
+import io.javalin.validation.ValidationError;
 import io.javalin.validation.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.example.hexlet.NamedRoutes;
+import org.example.hexlet.util.NamedRoutes;
 import org.example.hexlet.dto.courses.BuildCoursePage;
 import org.example.hexlet.dto.courses.CoursePage;
 import org.example.hexlet.dto.courses.CoursesPage;
@@ -13,6 +14,8 @@ import org.example.hexlet.dto.errors.ErrorResponse;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.repository.CourseRepository;
 import java.util.List;
+import java.util.Map;
+
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 
@@ -47,6 +50,12 @@ public class CoursesController {
         }
 
         var page = new CoursesPage(resultList, "Доступные курсы", term);
+
+        String flash = ctx.consumeSessionAttribute("flash");
+        String flashStatus = ctx.consumeSessionAttribute("flashStatus");
+
+        page.setFlash(flash, flashStatus);
+
         ctx.render("courses/index.jte", model("page", page));
     }
 
@@ -72,7 +81,24 @@ public class CoursesController {
 
     // Обработчик запроса на отображение формы добавления курса
     public static void build(Context ctx) {
-        var page = new BuildCoursePage();
+        BuildCoursePage page = null;
+
+        String flash = ctx.consumeSessionAttribute("flash");
+
+        // Если сообщения нет, значит страница вызывается впервые
+        // Если сообщение есть, значит были ошибки и страница вызывается повторно
+        if (flash != null) {
+            String flashStatus = ctx.consumeSessionAttribute("flashStatus");
+            String name = ctx.consumeSessionAttribute("name");
+            String description = ctx.consumeSessionAttribute("description");
+            Map<String, List<ValidationError<Object>>> errors = ctx.consumeSessionAttribute("errors");
+
+            page = new BuildCoursePage(name, description, errors);
+            page.setFlash(flash, flashStatus);
+        } else {
+            page = new BuildCoursePage();
+        }
+
         ctx.render("courses/build.jte", model("page", page));
     }
 
@@ -96,11 +122,20 @@ public class CoursesController {
             var course = new Course(name, description);
 
             CourseRepository.save(course);
+
+            ctx.sessionAttribute("flash", "Course has been created!");
+            ctx.sessionAttribute("flashStatus", "success");
+
             ctx.redirect(NamedRoutes.coursesPath());
 
         } catch (ValidationException e) {
-            var page = new BuildCoursePage(name, description, e.getErrors());
-            ctx.render("courses/build.jte", model("page", page));
+            ctx.sessionAttribute("flash", "Course was not created!");
+            ctx.sessionAttribute("flashStatus", "danger");
+            ctx.sessionAttribute("name", name);
+            ctx.sessionAttribute("description", description);
+            ctx.sessionAttribute("errors", e.getErrors());
+
+            ctx.redirect(NamedRoutes.buildCoursePath());
         }
     }
 

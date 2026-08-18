@@ -1,9 +1,11 @@
-@import org.example.hexlet.NamedRoutes
+@import org.example.hexlet.util.NamedRoutes
 @import org.example.hexlet.dto.courses.CoursesPage
 @param CoursesPage page
 
 
 @template.layout.page(
+page = page,
+
 content = @`
 <%-- Содержимое страницы --%>
     <h1>${page.getHeader()}</h1>

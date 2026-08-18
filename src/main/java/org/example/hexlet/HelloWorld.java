@@ -1,12 +1,7 @@
 package org.example.hexlet;
 
 import io.javalin.Javalin;
-import io.javalin.http.InternalServerErrorResponse;
-import io.javalin.http.NotFoundResponse;
-import io.javalin.http.servlet.JavalinServletContext;
 import io.javalin.rendering.template.JavalinJte;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.text.StringEscapeUtils;
 import org.example.hexlet.controller.CoursesController;
 import org.example.hexlet.controller.SessionsController;
@@ -14,6 +9,7 @@ import org.example.hexlet.controller.UsersController;
 import org.example.hexlet.dto.MainPage;
 import org.example.hexlet.model.Course;
 import org.example.hexlet.repository.CourseRepository;
+import org.example.hexlet.util.NamedRoutes;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
