@@ -8,7 +8,7 @@ plugins {
 }
 
 application {
-    mainClass.set("org.example.hexlet.HelloWorld")
+    mainClass.set("org.example.hexlet.App")
 }
 
 group = "org.example"
@@ -49,6 +49,17 @@ dependencies {
     // Устанавливаем, что разбор аннотаций будет производить Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.46")
 
+    // Подключение базы данных H2
+    implementation("com.h2database:h2:2.2.220")
+
+    // Подключение пуллера потокво для БД
+    implementation("com.zaxxer:HikariCP:5.0.1")
+
+    // Подключается для тестирования Javalin
+    testImplementation("io.javalin:javalin-testtools:6.1.3")
+
+    // Подключается для тестирования: assertThat
+    testImplementation("org.assertj:assertj-core:3.26.3")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

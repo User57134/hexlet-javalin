@@ -22,6 +22,14 @@ public final class Course {
   public Course (String name, String description) {
       this.name = name;
       this.description = description;
+      createdAt = LocalDateTime.now();
+  }
+
+  public Course (Long id, String name, String description) {
+      this.id = id;
+      this.name = name;
+      this.description = description;
+      createdAt = LocalDateTime.now();
   }
 }
 

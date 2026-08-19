@@ -1,5 +1,7 @@
 package org.example.hexlet;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
 import org.apache.commons.text.StringEscapeUtils;
@@ -8,36 +10,53 @@ import org.example.hexlet.controller.SessionsController;
 import org.example.hexlet.controller.UsersController;
 import org.example.hexlet.dto.MainPage;
 import org.example.hexlet.model.Course;
+import org.example.hexlet.repository.BaseRepository;
 import org.example.hexlet.repository.CourseRepository;
 import org.example.hexlet.util.NamedRoutes;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 
-public class HelloWorld {
-    private static final Logger log = LoggerFactory.getLogger(HelloWorld.class);
+public class App {
+    private static final Logger log = LoggerFactory.getLogger(App.class);
 
-    public static void createCourses() {
-        var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
-        CourseRepository.save(javaCourse);
 
-        var pythonCourse = new Course("Python", "Этот курс научит вас программировать на Python");
-        CourseRepository.save(pythonCourse);
+    public static Javalin getApp() {
+        var hikariConfig = new HikariConfig();
 
-        var phpCourse = new Course("PHP", "Этот курс научит вас программировать на PHP.");
-        CourseRepository.save(phpCourse);
+        // DB_CLOSE_DELAY = -1 - указание базе H2 закрываться при закрытии приложения,
+        // по-умолчанию закрытие базы происходит при закрытии последнего активного соединения
+        hikariConfig.setJdbcUrl("jdbc:h2:mem:hexlet_test;DB_CLOSE_DELAY=-1");
 
-        var webCourse = new Course("Web", "Этот курс научит вас разрабатывать приложения для Web.");
-        CourseRepository.save(webCourse);
-    }
+        var dataSource = new HikariDataSource(hikariConfig);
+        BaseRepository.dataSource = dataSource;
 
-    public static void main(String[] args) {
-        createCourses();
+        try (var is = App.class.getClassLoader().getResourceAsStream("schema.sql")) {
+            if (is != null) {
+                var bufferedReader = new BufferedReader(new InputStreamReader(is));
+                var sql = bufferedReader.lines().collect(Collectors.joining("\n"));
+
+                try (var connection = dataSource.getConnection()) {
+                    var statement = connection.createStatement();
+
+                    statement.execute(sql);
+                } catch (SQLException e) {
+                    throw new RuntimeException("Database interaction error: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // Создаем приложение
         var app = Javalin.create(config -> {
@@ -89,9 +108,9 @@ public class HelloWorld {
         // однако пользователь вместо этого для значение 'id' вводит скрипт '<scritp>alert('attack!')</script',
         // закодированный в url в виде '%3Cscript%3Ealert('attack!')%3B%3C%2Fscript%3E'
         app.get("/unsafe/{id}", ctx -> {
-           var id = ctx.pathParam("id");
-           ctx.contentType("html");
-           ctx.result("<h1>" + id + "</h1>");
+            var id = ctx.pathParam("id");
+            ctx.contentType("html");
+            ctx.result("<h1>" + id + "</h1>");
         });
 
         // добавление безопасной (проверяющей пользовательские данные) обработки данных:
@@ -211,6 +230,17 @@ public class HelloWorld {
                 CoursesController.delete(ctx);
             }
         });
+
+        return app;
+    }
+
+    public static void main(String[] args) {
+        Javalin app = getApp();
+
+        var javaCourse = new Course("Java", "Этот курс научит вас программировать на Java");
+        Long idJavaCourse = CourseRepository.save(javaCourse);
+
+        var javaCourses = CourseRepository.search("Java");
 
         app.start(7070); // Стартуем веб-сервер
     }
