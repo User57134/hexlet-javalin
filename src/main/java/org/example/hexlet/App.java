@@ -30,13 +30,19 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 public class App {
     private static final Logger log = LoggerFactory.getLogger(App.class);
 
+    private static String getDatabaseUrl() {
+        // Получаем url базы данных из переменной окружения DATABASE_URL
+        // Если она не установлена, используем базу в памяти
+        return System.getenv().getOrDefault("DATABASE_URL", "jdbc:h2:mem:hexlet_test");
+    }
 
     public static Javalin getApp() {
         var hikariConfig = new HikariConfig();
 
         // DB_CLOSE_DELAY = -1 - указание базе H2 закрываться при закрытии приложения,
         // по-умолчанию закрытие базы происходит при закрытии последнего активного соединения
-        hikariConfig.setJdbcUrl("jdbc:h2:mem:hexlet_test;DB_CLOSE_DELAY=-1");
+        //hikariConfig.setJdbcUrl("jdbc:h2:mem:hexlet_test;DB_CLOSE_DELAY=-1");
+        hikariConfig.setJdbcUrl(getDatabaseUrl());
 
         var dataSource = new HikariDataSource(hikariConfig);
         BaseRepository.dataSource = dataSource;
