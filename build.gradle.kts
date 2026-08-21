@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     id("java")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -54,6 +55,9 @@ dependencies {
 
     // Подключение пуллера потокво для БД
     implementation("com.zaxxer:HikariCP:5.0.1")
+
+    // Подключение драйвера Postgresql
+    implementation("org.postgresql:postgresql:42.7.3")
 
     // Подключается для тестирования Javalin
     testImplementation("io.javalin:javalin-testtools:6.1.3")
