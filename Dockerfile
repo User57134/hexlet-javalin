@@ -6,6 +6,6 @@ COPY . .
 
 RUN ./gradlew clean --no-daemon
 
-RUN ./gradlew build --no-daemon -x test
+RUN ./gradlew build --no-daemon -Dorg.gradle.workers.max=1 -x test
 
 CMD ["./gradlew", "run"]
