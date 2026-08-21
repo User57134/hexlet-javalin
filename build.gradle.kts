@@ -59,6 +59,18 @@ dependencies {
     // Подключение драйвера Postgresql
     implementation("org.postgresql:postgresql:42.7.3")
 
+    implementation("org.ow2.asm:asm") {
+        version {
+            strictly("9.7")
+        }
+    }
+
+    implementation("org.ow2.asm:asm-commons") {
+        version {
+            strictly("9.7")
+        }
+    }
+
     // Подключается для тестирования Javalin
     testImplementation("io.javalin:javalin-testtools:6.1.3")
 
